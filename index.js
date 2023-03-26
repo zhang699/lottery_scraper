@@ -26,11 +26,10 @@ async function crawlData(prefix, year) {
         //console.log("$", $(`table td:contains(球號 ${i})`).nextAll())
         $('table tr').nextAll().each((index, element) => {
 
-
-            let date = $(element).find('td:nth-child(2)').text().replace(/^\s+|\s+/, "")
+            let date = $(element).find('td:nth-child(2)').text().replaceAll(/\s|\\n/g, "")
             nums.push({
                 date,
-                number: $(element).find(`td:nth-child(${i + 3})`).text().trim()
+                number: $(element).find(`td:nth-child(${i + 3})`).text().replaceAll(/\s|\\n/g, "").trim()
             })
         })
         numbers.push(nums);
@@ -43,8 +42,9 @@ async function crawlData(prefix, year) {
         const fileName = `${prefix}_${i + 1}.txt`;
         const item = numbers[i]
         for (const { date, number } of item) {
+
             const data = `${year}/${date}, ${number}\n`;
-            fs.appendFileSync(`${TARGET}/${fileName}`, data);
+            fs.appendFileSync(`${TARGET}/${fileName}`, data, 'utf8');
         }
 
         console.log(`${year} 檔案已輸出至 ${fileName}`);
@@ -54,7 +54,12 @@ async function crawlData(prefix, year) {
 // 從 2008 年到現在的年份逐一爬取
 async function seqtimePromises(timeseries, prefix) {
     for (let year of timeseries) {
-        await crawlData(prefix, year)
+        try {
+            await crawlData(prefix, year)
+        } catch (e) {
+            console.error(e)
+        }
+
     }
 }
 (async () => {
